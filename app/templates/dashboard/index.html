@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-0 text-gradient"><i class="fa-solid fa-gauge-high me-2"></i>車況儀表板</h2>
+        <p class="text-muted mt-2">隨時掌握愛車的健康狀態，再也不會忘記保養！</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 保養提醒卡片 -->
+    <div class="col-lg-8 mb-4">
+        <div class="glass-card h-100">
+            <h4 class="mb-4"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>近期需保養項目</h4>
+            
+            {% if due_items %}
+                <div class="table-responsive">
+                    <table class="table table-glass">
+                        <thead>
+                            <tr>
+                                <th>車輛</th>
+                                <th>保養項目</th>
+                                <th>上次保養里程</th>
+                                <th>建議週期</th>
+                                <th>狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in due_items %}
+                            <tr>
+                                <td><strong>{{ item.vehicle_name }}</strong></td>
+                                <td>{{ item.item_name }}</td>
+                                <td>{{ item.last_service_mileage }} km</td>
+                                <td>{{ item.interval_mileage }} km</td>
+                                <td>
+                                    {% if item.overdue_by >= 0 %}
+                                        <span class="badge rounded-pill badge-danger-glass">
+                                            <i class="fa-solid fa-circle-exclamation me-1"></i> 已超標 {{ item.overdue_by }} km
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill badge-warning-glass">
+                                            <i class="fa-solid fa-clock me-1"></i> 剩餘 {{ item.overdue_by|abs }} km
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-circle-check text-success fs-1 mb-3" style="opacity: 0.8"></i>
+                    <h5>目前車況良好！</h5>
+                    <p class="text-muted">沒有即將到期的保養項目。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 快速動作與車庫摘要 -->
+    <div class="col-lg-4 mb-4">
+        <div class="glass-card mb-4">
+            <h5 class="mb-3">車庫摘要</h5>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>總車輛數</span>
+                <span class="badge badge-glass fs-6">{{ vehicles|length }} 台</span>
+            </div>
+            <hr class="border-secondary opacity-25">
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('garage.index') }}" class="btn btn-glass-primary">
+                    <i class="fa-solid fa-arrow-right me-1"></i> 前往車庫
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

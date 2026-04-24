@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="mb-0 text-gradient"><i class="fa-solid fa-warehouse me-2"></i>我的車庫</h2>
+        <p class="text-muted mt-2">管理您名下的所有車輛</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ url_for('garage.add') }}" class="btn btn-glass-primary">
+            <i class="fa-solid fa-plus me-1"></i> 新增車輛
+        </a>
+    </div>
+</div>
+
+{% if vehicles %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for v in vehicles %}
+    <div class="col">
+        <div class="glass-card h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge badge-glass mb-2">{{ v.brand }}</span>
+                    <h4 class="mb-0">{{ v.model_name }}</h4>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-white text-decoration-none px-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="{{ url_for('garage.edit', v_id=v.id) }}"><i class="fa-solid fa-pen-to-square me-2"></i>編輯車輛</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ url_for('garage.delete', v_id=v.id) }}" method="POST" onsubmit="return confirm('確定要刪除這台車與所有的保養紀錄嗎？此動作無法復原！');">
+                                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i>刪除車輛</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <p class="mb-1 text-muted small">目前里程</p>
+                <div class="fs-3 fw-bold text-gradient">{{ v.current_mileage | format }} <span class="fs-6 text-muted fw-normal">km</span></div>
+            </div>
+            
+            <div class="mt-auto d-grid">
+                <a href="{{ url_for('maintenance.index', v_id=v.id) }}" class="btn btn-outline-light border-secondary">
+                    <i class="fa-solid fa-clipboard-list me-1"></i> 保養紀錄
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass-card text-center py-5">
+    <i class="fa-solid fa-motorcycle text-muted fs-1 mb-3" style="opacity: 0.5"></i>
+    <h5>車庫裡空空如也</h5>
+    <p class="text-muted mb-4">點擊右上角新增您的第一台愛車吧！</p>
+    <a href="{{ url_for('garage.add') }}" class="btn btn-glass-primary">新增車輛</a>
+</div>
+{% endif %}
+{% endblock %}

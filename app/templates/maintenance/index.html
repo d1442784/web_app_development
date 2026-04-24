@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 麵包屑與標題 -->
+<div class="mb-4 d-flex align-items-center">
+    <a href="{{ url_for('garage.index') }}" class="btn btn-outline-light border-secondary btn-sm me-3">
+        <i class="fa-solid fa-arrow-left"></i> 回車庫
+    </a>
+    <h3 class="mb-0 text-gradient">{{ vehicle.brand }} {{ vehicle.model_name }} 的保養紀錄</h3>
+</div>
+
+<div class="row">
+    <!-- 車輛摘要資訊卡 -->
+    <div class="col-lg-4 mb-4">
+        <div class="glass-card">
+            <h5 class="text-muted mb-3">車輛摘要</h5>
+            <div class="d-flex justify-content-between mb-2">
+                <span>目前里程</span>
+                <span class="fw-bold">{{ vehicle.current_mileage | format }} km</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>紀錄筆數</span>
+                <span class="fw-bold text-info">{{ records|length }} 筆</span>
+            </div>
+            {% set total_cost = records | map(attribute='cost') | sum %}
+            <div class="d-flex justify-content-between">
+                <span>總保養花費</span>
+                <span class="fw-bold text-danger">$ {{ total_cost | format }}</span>
+            </div>
+            <hr class="border-secondary opacity-25">
+            <div class="d-grid mt-3">
+                <a href="{{ url_for('maintenance.add', v_id=vehicle.id) }}" class="btn btn-glass-primary">
+                    <i class="fa-solid fa-plus me-1"></i> 新增保養紀錄
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 紀錄清單 -->
+    <div class="col-lg-8 mb-4">
+        <div class="glass-card h-100">
+            <h5 class="mb-4">歷史紀錄</h5>
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-glass">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>保養項目</th>
+                                <th>保養里程</th>
+                                <th>花費</th>
+                                <th>備註</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                            <tr>
+                                <td>{{ r.service_date }}</td>
+                                <td><span class="fw-bold">{{ r.item_name }}</span></td>
+                                <td>{{ r.mileage_at_service }} km</td>
+                                <td class="text-warning">$ {{ r.cost }}</td>
+                                <td><span class="text-muted small">{{ r.notes or '-' }}</span></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('maintenance.edit', m_id=r.id) }}" class="btn btn-sm btn-outline-light border-secondary py-0 px-2" title="編輯">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <form action="{{ url_for('maintenance.delete', m_id=r.id) }}" method="POST" onsubmit="return confirm('確定刪除此紀錄？');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger border-secondary py-0 px-2" title="刪除">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-clipboard text-muted fs-1 mb-3" style="opacity: 0.5"></i>
+                    <h5>目前尚無保養紀錄</h5>
+                    <p class="text-muted">點擊左側「新增保養紀錄」開始記錄！</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

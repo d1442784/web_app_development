@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="glass-card">
+            <div class="mb-4">
+                <a href="{{ url_for('maintenance.index', v_id=vehicle.id) }}" class="text-decoration-none text-muted mb-2 d-inline-block">
+                    <i class="fa-solid fa-arrow-left me-1"></i> 返回清單
+                </a>
+                <h3 class="text-gradient mt-1">
+                    {% if record %}
+                    <i class="fa-solid fa-pen-to-square me-2"></i>編輯保養紀錄
+                    {% else %}
+                    <i class="fa-solid fa-plus me-2"></i>新增保養紀錄
+                    {% endif %}
+                </h3>
+                <span class="badge badge-glass">{{ vehicle.brand }} {{ vehicle.model_name }}</span>
+            </div>
+            
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="item_name" class="form-label text-muted">保養項目 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg" id="item_name" name="item_name" value="{{ record.item_name if record else '' }}" required placeholder="例如: 機油、空濾、後輪胎">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="service_date" class="form-label text-muted">保養日期 <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="service_date" name="service_date" value="{{ record.service_date if record else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="cost" class="form-label text-muted">花費金額</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent text-muted border-secondary">$</span>
+                            <input type="number" class="form-control" id="cost" name="cost" value="{{ record.cost if record else '0' }}" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="mileage_at_service" class="form-label text-muted">保養當下里程 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="mileage_at_service" name="mileage_at_service" value="{{ record.mileage_at_service if record else vehicle.current_mileage }}" required min="0">
+                            <span class="input-group-text bg-transparent text-muted border-secondary">km</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="interval_mileage" class="form-label text-muted">建議保養週期</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="interval_mileage" name="interval_mileage" value="{{ record.interval_mileage if record else '' }}" placeholder="例如 1000">
+                            <span class="input-group-text bg-transparent text-muted border-secondary">km</span>
+                        </div>
+                        <div class="form-text text-secondary mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info"></i> 設定後系統會自動在儀表板提醒下次保養</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="notes" class="form-label text-muted">備註說明</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="例如: 換了 Motul 300V, 順便鎖緊了鏈條">{{ record.notes if record else '' }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-glass-primary px-4 w-100">
+                        <i class="fa-solid fa-save me-1"></i> 儲存紀錄
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 自動帶入今天日期的小腳本 (如果是新增的話) -->
+{% if not record %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('service_date');
+        if (!dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

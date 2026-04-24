@@ -1,45 +1,77 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from app.models.vehicle import Vehicle
+from app.models.maintenance import MaintenanceRecord
 
 maintenance_bp = Blueprint('maintenance', __name__)
 
 @maintenance_bp.route('/garage/<int:v_id>/maintenance/')
 def index(v_id):
-    """
-    GET /garage/<v_id>/maintenance/
-    特定車輛的保養紀錄清單
-    - 確認車輛存在 (Vehicle.get_by_id)
-    - 取得該車的保養紀錄 (MaintenanceRecord.get_by_vehicle)
-    - 渲染 maintenance/index.html
-    """
-    pass
+    vehicle = Vehicle.get_by_id(v_id)
+    if not vehicle:
+        flash('找不到該車輛', 'danger')
+        return redirect(url_for('garage.index'))
+        
+    records = MaintenanceRecord.get_by_vehicle(v_id)
+    return render_template('maintenance/index.html', vehicle=vehicle, records=records)
 
 @maintenance_bp.route('/garage/<int:v_id>/maintenance/add', methods=['GET', 'POST'])
 def add(v_id):
-    """
-    GET/POST /garage/<v_id>/maintenance/add
-    針對指定車輛新增保養紀錄
-    - GET: 渲染 maintenance/form.html
-    - POST: 接收表單，呼叫 MaintenanceRecord.create()，重導向至該車的保養清單頁面
-    """
-    pass
+    vehicle = Vehicle.get_by_id(v_id)
+    if not vehicle:
+        return redirect(url_for('garage.index'))
+        
+    if request.method == 'POST':
+        item_name = request.form.get('item_name')
+        mileage_at_service = request.form.get('mileage_at_service', type=int)
+        interval_mileage = request.form.get('interval_mileage', type=int)
+        cost = request.form.get('cost', type=int, default=0)
+        service_date = request.form.get('service_date')
+        notes = request.form.get('notes', '')
+        
+        if not item_name or mileage_at_service is None or not service_date:
+            flash('請填寫必填欄位（項目、里程、日期）', 'danger')
+            return render_template('maintenance/form.html', vehicle=vehicle, record=None)
+            
+        MaintenanceRecord.create(v_id, item_name, mileage_at_service, interval_mileage, cost, service_date, notes)
+        flash('保養紀錄已新增', 'success')
+        return redirect(url_for('maintenance.index', v_id=v_id))
+        
+    return render_template('maintenance/form.html', vehicle=vehicle, record=None)
 
 @maintenance_bp.route('/maintenance/<int:m_id>/edit', methods=['GET', 'POST'])
 def edit(m_id):
-    """
-    GET/POST /maintenance/<m_id>/edit
-    編輯保養紀錄
-    - GET: 取得該紀錄 (MaintenanceRecord.get_by_id)，渲染 maintenance/form.html
-    - POST: 接收表單，呼叫 MaintenanceRecord.update()，重導向至該車的保養清單頁面
-    """
-    pass
+    record = MaintenanceRecord.get_by_id(m_id)
+    if not record:
+        flash('找不到該紀錄', 'danger')
+        return redirect(url_for('garage.index'))
+        
+    v_id = record['vehicle_id']
+    vehicle = Vehicle.get_by_id(v_id)
+        
+    if request.method == 'POST':
+        item_name = request.form.get('item_name')
+        mileage_at_service = request.form.get('mileage_at_service', type=int)
+        interval_mileage = request.form.get('interval_mileage', type=int)
+        cost = request.form.get('cost', type=int, default=0)
+        service_date = request.form.get('service_date')
+        notes = request.form.get('notes', '')
+        
+        if not item_name or mileage_at_service is None or not service_date:
+            flash('請填寫必填欄位（項目、里程、日期）', 'danger')
+            return render_template('maintenance/form.html', vehicle=vehicle, record=record)
+            
+        MaintenanceRecord.update(m_id, item_name, mileage_at_service, interval_mileage, cost, service_date, notes)
+        flash('保養紀錄已更新', 'success')
+        return redirect(url_for('maintenance.index', v_id=v_id))
+        
+    return render_template('maintenance/form.html', vehicle=vehicle, record=record)
 
 @maintenance_bp.route('/maintenance/<int:m_id>/delete', methods=['POST'])
 def delete(m_id):
-    """
-    POST /maintenance/<m_id>/delete
-    刪除保養紀錄
-    - 取得該紀錄以得知隸屬車輛 ID
-    - 呼叫 MaintenanceRecord.delete()
-    - 重導向至該車的保養清單頁面
-    """
-    pass
+    record = MaintenanceRecord.get_by_id(m_id)
+    if record:
+        v_id = record['vehicle_id']
+        MaintenanceRecord.delete(m_id)
+        flash('保養紀錄已刪除', 'success')
+        return redirect(url_for('maintenance.index', v_id=v_id))
+    return redirect(url_for('garage.index'))
